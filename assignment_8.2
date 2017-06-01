@@ -1,0 +1,102 @@
+example of concat - use dataset1 available in /user/acadgild/pig/dataset1
+*************************************************************************
+hadoop fs -mkdir /user/acadgild/pig
+
+hadoop fs -copyFromLocal /home/acadgild/pig/dataset1 /user/acadgild/pig
+
+A = Load '/home/acadgild/pig/dataset1' Using PigStorage(',') As (id:int, firstname:chararray, lastname:chararray, age:int, mobileno:int, city:chararray, pincode:int);
+
+concat_data = FOREACH A GENERATE CONCAT(firstname , lastname);
+
+dump concat_data;
+
+********************************************
+Tokenize Data - use Dataset which is availabe in /user/acadgild/pig/dataset2
+*******************************************
+
+
+hadoop fs -copyFromLocal /home/acadgild/pig/dataset2 /user/acadgild/pig
+
+
+A = Load '/home/acadgild/pig/dataset2' Using PigStorage(',') As (id:int, name:chararray, age:int, mobileno:int, city:chararray, pincode:int);
+
+tokenize_data = FOREACH A GENERATE TOKENIZE(name);
+
+dump tokenize_data;
+
+*********************************************************************
+Sum and Distinct Data - Use dataset which is available in /home/acadgild/pig/employee_details
+*******************************************************************************
+
+A = Load '/home/acadgild/pig/employee_details.txt' Using PigStorage(',') AS (id:int, name:chararray, salary:int, rating:int);
+
+distinct_data = DISTINCT(A);
+
+
+group_data = GROUP A BY name;
+
+grouped_data = FOREACH  group_data GENERATE group, SUM(A.rating);
+
+dump grouped_data;
+
+*****************************************************************************************
+MIN, MAX and LIMIT Example - Use dataset which is available in /home/acadgild/pig/employee_details
+*****************************************************************************************
+
+A = Load '/home/acadgild/pig/dataset1' Using PigStorage(',') As (id:int, firstname:chararray, lastname:chararray, age:int, mobileno:int, city:chararray, gpa:int);
+
+STORE A into '/home/acadgild/pig/Adataset' Using PigStorage(',');
+
+limit_data = LIMIT A 5;
+
+group_data = GROUP A ALL;
+
+min_gpa = FOREACH group_data GENERATE (A.firstname, A.gpa), MIN(A.gpa);
+
+dump min_gpa;
+
+max_gpa = FOREACH group_data GENERATE (A.firstname, A.gpa), MAX(A.gpa);
+
+dump max_gpa;
+
+***************************************************************************************************
+Flatten
+********************************************
+
+players = load '/home/acadgild/pig/baseball' as (name:chararray, team:chararray, position:bag{t:(p:chararray)}, bat:map[]);
+pos     = foreach players generate name, flatten(position) as position;
+bypos   = group pos by position;
+dump bypos;
+******************************************************************************
+IsEmpty
+*************************************************************************
+A = LOAD '/home/acadgild/pig/emp_sales' Using PigStorage(',') AS (sno:int, name:chararray, age:int, salary:int, dept:chararray);
+
+B =  LOAD '/home/acadgild/pig/emp_bonus' Using PigStorage(',') AS (sno:int, name:chararray, age:int, salary:int, dept:chararray);
+
+
+cogroup_data = COGROUP A by age, B by age;
+
+isempty_data = filter cogroup_data by IsEmpty(A);
+
+dump isempty_data;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
